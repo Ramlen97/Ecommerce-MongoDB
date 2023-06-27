@@ -16,7 +16,6 @@ exports.getProducts = (req, res, next) => {
 
 exports.getProduct = (req, res, next) => {
   const prodId = req.params.productId;
-  console.log(prodId);
   Product.findById(prodId)
     .then(product => {
       res.render('shop/product-detail', {
@@ -63,7 +62,6 @@ exports.postCart = (req, res, next) => {
       return req.user.addToCart(product);
     })
     .then(result => {
-      console.log(result);
       res.redirect('/cart');
     })
     .catch(err => console.log(err));
@@ -72,7 +70,7 @@ exports.postCart = (req, res, next) => {
 
 exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  req.user.deleteProductFromCart(prodId)
+  req.user.removeFromCart(prodId)
     .then(result => {
       res.redirect('/cart');
     })

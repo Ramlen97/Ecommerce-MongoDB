@@ -21,15 +21,19 @@ const userSchema = new Schema({
 
 userSchema.methods.addToCart=function(product){
   const cartProduct=this.cart.items.findIndex(cp=>{
-    console.log(cp.productId,product.productId);
     return cp.productId.toString() === product._id.toString();
   })
   if(cartProduct===-1){
-    const newItem={productId:product._id,qty:1}
     this.cart.items.push({productId:product._id,qty:1});
   }else{
     this.cart.items[cartProduct].qty++;
   }
+  return this.save();
+}
+userSchema.methods.removeFromCart=function(prodId){
+  this.cart.items=this.cart.items.filter(i=>{
+    return prodId !== i.productId.toString();
+  })
   return this.save();
 }
 

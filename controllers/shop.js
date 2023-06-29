@@ -1,4 +1,5 @@
 const Product = require('../models/product');
+const Order = require('../models/order');
 
 exports.getProducts = (req, res, next) => {
   Product.find()
@@ -78,21 +79,40 @@ exports.postCartDeleteProduct = (req, res, next) => {
 };
 
 exports.postOrder = (req, res, next) => {
-  req.user.addOrder()
+  req.user
+    .populate('cart.items.productId')
+    .then(user => {
+      const products = user.cart.items.map(i => {
+        return { qty: i.qty, product:{...i.productId._doc} }
+      })
+      const order = new Order({
+        products,
+        user: {
+          name: req.user.name,
+          _id: req.user
+        }
+      })
+      return order.save()
+    })
+    .then(result => {
+      req.user.cart={items:[]};
+      return req.user.save();
+    })
     .then(result => {
       res.redirect('/orders');
-    })
+    })    
     .catch(err => console.log(err));
 };
 
-exports.getOrders = (req, res, next) => {
-  req.user.getOrders()
-    .then(orders => {
-      res.render('shop/orders', {
-        path: '/orders',
-        pageTitle: 'Your Orders',
-        orders: orders
-      });
-    })
-    .catch(err => console.log(err));
-};
+  exports.getOrders = (req, res, next) => {
+    Order.find({'user._id':req.user._id})
+      .then(orders => {
+        console.log(orders);
+        res.render('shop/orders', {
+          path: '/orders',
+          pageTitle: 'Your Orders',
+          orders: orders
+        });
+      })
+      .catch(err => console.log(err));
+  }
